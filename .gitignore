@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Keys
+keys/*
+
+# ignore .idea
+.idea
