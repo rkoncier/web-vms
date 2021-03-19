@@ -18,6 +18,6 @@ RUN find . -type f -name "*.sh" -print0 | xargs -0 dos2unix --
 RUN chown -R vmuser:vmuser /project
 USER vmuser
 RUN mkdir ~/.ssh && cp /project/keys/private-key.pem ~/.ssh/key && chmod 600 ~/.ssh/key
-RUN mkdir -p ~/.config/gcloud && cp /project/keys/application_default_credentials.json ~/.config/gcloud
+RUN mkdir -p ~/.config/gcloud && cp /project/keys/packer.json ~/.config/gcloud/application_default_credentials.json
 
 ENTRYPOINT /bin/sh

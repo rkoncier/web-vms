@@ -1,7 +1,11 @@
 FROM hashicorp/terraform
-RUN ln -s /bin/terraform /bin/tf
+RUN ln -s /bin/terraform /bin/tf \
+    && apk add dos2unix --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community/ --allow-untrusted \
+    && apk add --update --no-cache bash
 
-ADD . /tf
-WORKDIR /tf
+ADD . /project
+RUN mkdir -p ~/.config/gcloud && cp /project/keys/terraform.json ~/.config/gcloud/application_default_credentials.json
+RUN find . -type f -name "*.sh" -print0 | xargs -0 dos2unix --
+WORKDIR /project
 
 ENTRYPOINT /bin/sh
