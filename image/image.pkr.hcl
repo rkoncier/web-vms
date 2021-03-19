@@ -10,4 +10,8 @@ source "googlecompute" "web-vm-image" {
 
 build {
   sources = ["sources.googlecompute.web-vm-image"]
+  provisioner "ansible" {
+    playbook_file = "./image/playbook.yml"
+    inventory_directory = "./image/inventory"
+  }
 }

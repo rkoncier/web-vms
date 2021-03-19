@@ -10,11 +10,13 @@ RUN apk add --no-cache --update curl jq \
     && unzip /tmp/packer_linux_amd64.zip -d /usr/local/bin/ && ln -s /usr/local/packer/pkg/packer_linux_amd64 /usr/sbin/packer \
     && rm -f /tmp/packer_linux_amd64.zip
 RUN echo -e '[defaults]\nansible_managed = ANSIBLE MANAGED : DO NOT EDIT !!!\nhost_key_checking = False\ntransport = ssh\n' >> /root/.ansible.cfg
-#RUN adduser vmuser -s /bin/sh --disabled-password && mkdir /home/vmuser/.ssh
+RUN adduser vmuser -s /bin/sh --disabled-password
 
 WORKDIR /project
 ADD . .
 RUN find . -type f -name "*.sh" -print0 | xargs -0 dos2unix --
+RUN chown -R vmuser:vmuser /project
+USER vmuser
 RUN mkdir ~/.ssh && cp /project/keys/private-key.pem ~/.ssh/key && chmod 600 ~/.ssh/key
 RUN mkdir -p ~/.config/gcloud && cp /project/keys/application_default_credentials.json ~/.config/gcloud
 

@@ -1,0 +1,7 @@
+FROM hashicorp/terraform
+RUN ln -s /bin/terraform /bin/tf
+
+ADD . /tf
+WORKDIR /tf
+
+ENTRYPOINT /bin/sh

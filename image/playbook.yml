@@ -1,0 +1,60 @@
+---
+- name: Configure Image
+  hosts: default
+  become: true
+  become_user: root
+  become_method: sudo
+
+  tasks:
+    - name: Ensure Flask is installed
+      pip:
+        name: flask
+
+    - name: Ensure conf.d directory exists
+      file:
+        path: "{{ flask_www_folder }}"
+        state: directory
+
+    - name: Ensure web files are uploaded
+      copy:
+        src: ../src/app.py
+        dest: "{{ flask_www_folder }}/app.py"
+
+    - name: Ensure Flask service is setup
+      copy:
+        src: templates/flask.service
+        dest: /etc/systemd/system/flask.service
+
+    - name: Ensure nginx is installed
+      yum:
+        name: "{{ nginx_rpm_url }}"
+        state: present
+        disable_gpg_check: true
+
+    - name: Edit nginx configuration
+      lineinfile:
+        path: /etc/nginx/conf.d/default.conf
+        firstmatch: true
+        insertafter: '^\s*location / {'
+        regexp: '^\s*root   /usr/share/nginx/html;'
+        line: "proxy_pass http://127.0.0.1:{{ flask_port }}/;"
+
+    - name: Ensure libsemanage-python support is installed
+      yum:
+        name: policycoreutils-python-utils
+        state: present
+
+    - name: Enable httpd_can_network_connect flag on and keep it persistent
+      seboolean:
+        name: httpd_can_network_connect
+        state: true
+        persistent: true
+
+    - name: Enable services
+      systemd:
+        name: "{{ item }}"
+        daemon_reload: true
+        enabled: true
+      with_items:
+        - flask.service
+        - nginx.service
