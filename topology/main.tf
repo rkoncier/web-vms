@@ -88,3 +88,24 @@ resource "google_compute_health_check" "web-http-check" {
     port = 80
   }
 }
+
+resource "google_compute_url_map" "web-c-url-map" {
+  name = "web-c-url-map"
+  default_service = google_compute_backend_service.web-bservice.self_link
+}
+
+resource "google_compute_target_http_proxy" "web-target-proxy" {
+  name = "web-target-proxy"
+  url_map = google_compute_url_map.web-c-url-map.self_link
+}
+
+data "google_compute_global_address" "web-static-address" {
+  name = "web-static-address"
+}
+
+resource "google_compute_global_forwarding_rule" "web-gfr" {
+  name = "web-gfr"
+  ip_address = data.google_compute_global_address.web-static-address.address
+  port_range = "80"
+  target = google_compute_target_http_proxy.web-target-proxy.self_link
+}
