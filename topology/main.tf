@@ -1,7 +1,7 @@
 provider "google" {
-  project = "eternal-wavelet-301417"
-  region = "us-central1"
-  zone = "us-central1-c"
+  project = var.project
+  region = var.region
+  zone = var.zone
 }
 
 resource "google_compute_network" "web-vpc" {
@@ -12,8 +12,8 @@ resource "google_compute_network" "web-vpc" {
 
 resource "google_compute_subnetwork" "web-subnetwork" {
   name = "web-subnetwork"
-  ip_cidr_range = "192.168.10.0/24"
-  region = "us-central1"
+  ip_cidr_range = var.subnetwork_range
+  region = var.region
   network = google_compute_network.web-vpc.id
 }
 
@@ -24,9 +24,7 @@ resource "google_compute_firewall" "web-in-tcp" {
 
   allow {
     protocol = "tcp"
-    ports = [
-      "80",
-      "22"]
+    ports = var.ingress_ports
   }
 }
 
@@ -36,8 +34,8 @@ data "google_compute_image" "web-vm-image" {
 
 resource "google_compute_instance_template" "web-tempi" {
   name_prefix = "web-tempi-"
-  machine_type = "e2-micro"
-  region = "us-central1"
+  machine_type = var.compute_size
+  region = var.region
 
   disk {
     source_image = data.google_compute_image.web-vm-image.self_link
@@ -55,7 +53,7 @@ resource "google_compute_instance_template" "web-tempi" {
 resource "google_compute_instance_group_manager" "web-igm" {
   name = "web-igm"
   base_instance_name = "web-instance"
-  zone = "us-central1-c"
+  zone = var.zone
   version {
     name = "appserver"
     instance_template = google_compute_instance_template.web-tempi.id
@@ -65,7 +63,7 @@ resource "google_compute_instance_group_manager" "web-igm" {
 
   named_port {
     name = "http"
-    port = 80
+    port = var.service_port
   }
 }
 
@@ -85,7 +83,7 @@ resource "google_compute_backend_service" "web-bservice" {
 resource "google_compute_health_check" "web-http-check" {
   name = "web-http-check"
   http_health_check {
-    port = 80
+    port = var.service_port
   }
 }
 
@@ -106,6 +104,6 @@ data "google_compute_global_address" "web-static-address" {
 resource "google_compute_global_forwarding_rule" "web-gfr" {
   name = "web-gfr"
   ip_address = data.google_compute_global_address.web-static-address.address
-  port_range = "80"
+  port_range = tostring(var.service_port)
   target = google_compute_target_http_proxy.web-target-proxy.self_link
 }
