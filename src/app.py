@@ -13,7 +13,3 @@ def info():
 
 if __name__ == '__main__':
     app.run()
-
-import subprocess
-
-print(result.stdout.decode('utf-8'))
